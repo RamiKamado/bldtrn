@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ランダム2文字組み合わせ生成ツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        #modeSelectionSection {
+            margin-bottom: 1.5rem;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .mode-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .mode-checkbox:hover {
+            background: #f0f0f0;
+        }
+
+        .mode-checkbox input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #f0f0f0;
+        }
+
+        .start-button {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        #gameSection {
+            display: none;
+        }
+
+        #resultSection {
+            display: none;
+        }
+
+        .mode-display {
+            background: #f9f9f9;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .mode-display p {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .mode-display strong {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .combination-display {
+            background: #f9f9f9;
+            border-radius: 6px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .combination-display p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .combination-text {
+            font-size: 48px;
+            font-weight: 500;
+            letter-spacing: 8px;
+            color: #333;
+        }
+
+        .progress-text {
+            margin-top: 1rem;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .finish-button {
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+
+        .instruction {
+            margin-top: 1rem;
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+
+        .results-table {
+            width: 100%;
+            font-size: 13px;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .results-table th {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .results-table td:nth-child(2) {
+            text-align: right;
+            color: #0066cc;
+        }
+
+        .results-table td:nth-child(3) {
+            text-align: center;
+            width: 60px;
+        }
+
+        .register-button {
+            font-size: 11px;
+            padding: 4px 8px;
+            background: #f0f0f0;
+        }
+
+        .summary-row {
+            background: #f9f9f9;
+            font-weight: 500;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .difficult-section {
+            background: #f9f9f9;
+            border-radius: 6px;
+            padding: 1.5rem;
+        }
+
+        .difficult-section h3 {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .difficult-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .clear-button {
+            width: 100%;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ランダム2文字組み合わせ生成</h1>
+
+        <div id="modeSelectionSection">
+            <div class="mode-grid">
+                <label class="mode-checkbox">
+                    <input type="checkbox" value="corner">
+                    <span>Corner (378)</span>
+                </label>
+                <label class="mode-checkbox">
+                    <input type="checkbox" value="edge">
+                    <span>Edge (440)</span>
+                </label>
+                <label class="mode-checkbox">
+                    <input type="checkbox" value="x-center">
+                    <span>X-Center (440)</span>
+                </label>
+                <label class="mode-checkbox">
+                    <input type="checkbox" value="plus-center">
+                    <span>+Center (440)</span>
+                </label>
+                <label class="mode-checkbox">
+                    <input type="checkbox" value="midge">
+                    <span>Midge (440)</span>
+                </label>
+            </div>
+            <button class="start-button" onclick="startGame(event)">開始</button>
+        </div>
+
+        <div id="gameSection">
+            <div class="mode-display">
+                <p>現在のモード</p>
+                <strong id="modeDisplay">Corner</strong>
+            </div>
+
+            <div class="combination-display">
+                <p>現在の組み合わせ</p>
+                <div class="combination-text" id="result">あ い</div>
+                <div class="progress-text">
+                    進捗: <span id="progressText">1/378</span>
+                </div>
+            </div>
+
+            <button class="finish-button" onclick="finishGame(event)">終了</button>
+
+            <div class="instruction">
+                <p>画面をタップで次の組み合わせへ</p>
+            </div>
+        </div>
+
+        <div id="resultSection">
+            <div style="margin-bottom: 1.5rem;">
+                <h2 style="font-size: 16px; font-weight: 500; margin-bottom: 1rem;">測定結果</h2>
+                <div id="resultsList" style="overflow-y: auto; max-height: 400px;"></div>
+            </div>
+
+            <div class="button-group">
+                <button onclick="resetGame(event)">リセット</button>
+                <button onclick="exportResults(event)">結果をコピー</button>
+            </div>
+
+            <div class="difficult-section">
+                <h3>苦手なケース一覧</h3>
+                <div class="difficult-list" id="difficultList">
+                    <p style="color: #666; margin: 0;">登録されていません</p>
+                </div>
+                <button class="clear-button" id="clearDifficultBtn" onclick="clearDifficult(event)">クリア</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const allCharacters = {
+            'UBL': 'あ', 'UBR': 'い', 'UFR': null, 'UFL': 'え',
+            'FUL': 'か', 'FUR': null, 'FDR': 'く', 'FDL': 'け',
+            'LUB': 'さ', 'LUF': 'し', 'LDF': 'す', 'LDB': 'せ',
+            'RUF': null, 'RUB': 'ち', 'RDB': 'つ', 'RDF': 'て',
+            'BUR': 'な', 'BUL': 'に', 'BDL': 'ぬ', 'BDR': 'ね',
+            'DFL': 'は', 'DFR': 'ひ', 'DBR': 'ふ', 'DBL': 'へ'
+        };
+
+        const edgeCharacters = {
+            'UF': null, 'UL': 'i', 'UB': 'u', 'UR': 'e',
+            'FU': null, 'FR': 'k', 'FD': 'a', 'FL': 'g',
+            'LU': 'z', 'LF': 'sh', 'LD': 's', 'LB': 'j',
+            'RU': 'd', 'RB': 'ch', 'RD': 'ts', 'RF': 't',
+            'BU': 'w', 'BL': 'n', 'BD': 'o', 'BR': 'm',
+            'DF': 'r', 'DR': 'h', 'DB': 'b', 'DL': 'p'
+        };
+
+        function set(label) {
+            return label.split('').sort().join('');
+        }
+
+        function cornerFilter(label1, label2) {
+            return set(label1) !== set(label2);
+        }
+
+        function edgeFilter(label1, label2) {
+            if (label1[0] === label1[1] || label2[0] === label2[1]) return false;
+            return set(label1) !== set(label2);
+        }
+
+        function xCenterFilter(label1, label2) {
+            if (label1[0] === label1[1] || label2[0] === label2[1]) return false;
+            if (label1[0] === label2[0]) return false;
+            return set(label1) !== set(label2);
+        }
+
+        function plusCenterFilter(label1, label2) {
+            if (label1[0] === label1[1] || label2[0] === label2[1]) return false;
+            if (label1[0] === label2[0]) return false;
+            return set(label1) !== set(label2);
+        }
+
+        function midgeFilter(label1, label2) {
+            if (label1[0] === label1[1] || label2[0] === label2[1]) return false;
+            return set(label1) !== set(label2);
+        }
+
+        const modeDefinitions = {
+            corner: {
+                labels: ['UBL', 'UBR', 'UFL', 'FUL', 'FDR', 'FDL', 'LUB', 'LUF', 'LDF', 'LDB', 'RUB', 'RDB', 'RDF', 'BUR', 'BUL', 'BDL', 'BDR', 'DFL', 'DFR', 'DBR', 'DBL'],
+                characters: allCharacters,
+                filter: cornerFilter
+            },
+            edge: {
+                labels: ['UL', 'UB', 'UR', 'FR', 'FD', 'FL', 'LU', 'LF', 'LD', 'LB', 'RU', 'RB', 'RD', 'RF', 'BU', 'BL', 'BD', 'BR', 'DF', 'DR', 'DB', 'DL'],
+                characters: edgeCharacters,
+                filter: edgeFilter
+            },
+            'x-center': {
+                labels: ['UL', 'UB', 'UR', 'FR', 'FD', 'FL', 'LU', 'LF', 'LD', 'LB', 'RU', 'RB', 'RD', 'RF', 'BU', 'BL', 'BD', 'BR', 'DF', 'DR', 'DB', 'DL'],
+                characters: edgeCharacters,
+                filter: xCenterFilter
+            },
+            'plus-center': {
+                labels: ['UL', 'UB', 'UR', 'FR', 'FD', 'FL', 'LU', 'LF', 'LD', 'LB', 'RU', 'RB', 'RD', 'RF', 'BU', 'BL', 'BD', 'BR', 'DF', 'DR', 'DB', 'DL'],
+                characters: edgeCharacters,
+                filter: plusCenterFilter
+            },
+            midge: {
+                labels: ['UL', 'UB', 'UR', 'FR', 'FD', 'FL', 'LU', 'LF', 'LD', 'LB', 'RU', 'RB', 'RD', 'RF', 'BU', 'BL', 'BD', 'BR', 'DF', 'DR', 'DB', 'DL'],
+                characters: edgeCharacters,
+                filter: midgeFilter
+            }
+        };
+
+        let results = [];
+        let difficultCases = [];
+        let currentModes = [];
+        let currentModeIndex = 0;
+        let currentMode = null;
+        let startTime = null;
+        let currentCombination = null;
+        let validCombinations = [];
+
+        const container = document.querySelector('.container');
+        container.onclick = (e) => {
+            if (e.target === container && currentMode) {
+                generateCombination();
+            }
+        };
+
+        function startGame(event) {
+            event.stopPropagation();
+            
+            currentModes = [];
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                if (checkbox.checked) currentModes.push(checkbox.value);
+            });
+            
+            if (currentModes.length === 0) {
+                alert('最低1つのモードを選択してください');
+                return;
+            }
+            
+            results = [];
+            currentModeIndex = 0;
+            loadMode(0);
+        }
+
+        function loadMode(modeIndex) {
+            if (modeIndex >= currentModes.length) {
+                showResults();
+                return;
+            }
+            
+            currentMode = currentModes[modeIndex];
+            currentModeIndex = modeIndex;
+            startTime = null;
+            currentCombination = null;
+            
+            document.getElementById('modeSelectionSection').style.display = 'none';
+            document.getElementById('gameSection').style.display = 'block';
+            
+            const modeNames = {
+                corner: 'Corner', edge: 'Edge', 'x-center': 'X-Center',
+                'plus-center': '+Center', midge: 'Midge'
+            };
+            
+            document.getElementById('modeDisplay').textContent = modeNames[currentMode];
+            
+            const modeConfig = modeDefinitions[currentMode];
+            validCombinations = [];
+            const { labels, characters, filter } = modeConfig;
+            
+            for (let i = 0; i < labels.length; i++) {
+                for (let j = 0; j < labels.length; j++) {
+                    if (i !== j) {
+                        const label1 = labels[i];
+                        const label2 = labels[j];
+                        const char1 = characters[label1];
+                        const char2 = characters[label2];
+                        
+                        if (char1 && char2 && filter(label1, label2)) {
+                            validCombinations.push({
+                                combination: char1 + ' ' + char2
+                            });
+                        }
+                    }
+                }
+            }
+            
+            document.getElementById('progressText').textContent = `0/${validCombinations.length}`;
+            generateCombination();
+        }
+
+        function generateCombination() {
+            const now = Date.now();
+            
+            if (startTime !== null && currentCombination !== null) {
+                const elapsedSeconds = ((now - startTime) / 1000).toFixed(2);
+                results.push({
+                    combination: currentCombination,
+                    time: parseFloat(elapsedSeconds),
+                    mode: currentMode
+                });
+            }
+            
+            if (validCombinations.length === 0) {
+                alert('有効な組み合わせがありません');
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * validCombinations.length);
+            const selected = validCombinations[randomIndex];
+            
+            currentCombination = selected.combination;
+            document.getElementById('result').textContent = currentCombination;
+            document.getElementById('progressText').textContent = `${results.length + 1}/${validCombinations.length}`;
+            
+            startTime = now;
+        }
+
+        function finishGame(event) {
+            event.stopPropagation();
+            
+            const now = Date.now();
+            if (startTime !== null && currentCombination !== null) {
+                const elapsedSeconds = ((now - startTime) / 1000).toFixed(2);
+                results.push({
+                    combination: currentCombination,
+                    time: parseFloat(elapsedSeconds),
+                    mode: currentMode
+                });
+            }
+            
+            if (currentModeIndex + 1 < currentModes.length) {
+                loadMode(currentModeIndex + 1);
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('gameSection').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'block';
+            
+            let html = '<table class="results-table"><thead><tr><th>組み合わせ</th><th>秒数</th><th></th></tr></thead><tbody>';
+            
+            let totalTime = 0;
+            results.forEach((result, index) => {
+                totalTime += result.time;
+                const isRegistered = difficultCases.some(d => d.combination === result.combination);
+                const buttonText = isRegistered ? '✓' : '登録';
+                html += `<tr><td>${result.combination}</td><td>${result.time.toFixed(2)}秒</td><td><button class="register-button" onclick="addDifficultCase('${result.combination.replace(/'/g, "\\'")}', ${index})">${buttonText}</button></td></tr>`;
+            });
+            
+            if (results.length > 0) {
+                const avgTime = (totalTime / results.length).toFixed(2);
+                html += `<tr class="summary-row"><td>合計</td><td>${totalTime.toFixed(2)}秒</td><td></td></tr>`;
+                html += `<tr class="summary-row"><td>平均</td><td>${avgTime}秒</td><td></td></tr>`;
+            }
+            
+            html += '</tbody></table>';
+            document.getElementById('resultsList').innerHTML = html;
+            updateDifficultList();
+        }
+
+        function addDifficultCase(combination) {
+            event.stopPropagation();
+            
+            const exists = difficultCases.some(d => d.combination === combination);
+            
+            if (exists) {
+                difficultCases = difficultCases.filter(d => d.combination !== combination);
+            } else {
+                difficultCases.push({ combination, timestamp: new Date().toLocaleString('ja-JP') });
+            }
+            
+            showResults();
+        }
+
+        function updateDifficultList() {
+            const list = document.getElementById('difficultList');
+            const clearBtn = document.getElementById('clearDifficultBtn');
+            
+            if (difficultCases.length === 0) {
+                list.innerHTML = '<p style="color: #666; margin: 0;">登録されていません</p>';
+                clearBtn.style.display = 'none';
+            } else {
+                let html = '<table class="results-table"><tbody>';
+                difficultCases.forEach((caseItem, index) => {
+                    html += `<tr><td>${caseItem.combination}</td><td><button class="register-button" onclick="removeDifficultCase(${index})">削除</button></td></tr>`;
+                });
+                html += '</tbody></table>';
+                list.innerHTML = html;
+                clearBtn.style.display = 'block';
+            }
+        }
+
+        function removeDifficultCase(index) {
+            event.stopPropagation();
+            difficultCases.splice(index, 1);
+            updateDifficultList();
+        }
+
+        function clearDifficult(event) {
+            event.stopPropagation();
+            difficultCases = [];
+            updateDifficultList();
+        }
+
+        function resetGame(event) {
+            event.stopPropagation();
+            
+            results = [];
+            currentMode = null;
+            startTime = null;
+            currentCombination = null;
+            validCombinations = [];
+            
+            document.getElementById('gameSection').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('modeSelectionSection').style.display = 'block';
+            
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+
+        function exportResults(event) {
+            event.stopPropagation();
+            
+            const modeNames = {
+                corner: 'Corner', edge: 'Edge', 'x-center': 'X-Center',
+                'plus-center': '+Center', midge: 'Midge'
+            };
+            
+            let text = '【測定結果】\n\n';
+            let totalTime = 0;
+            
+            results.forEach((result, index) => {
+                text += `${index + 1}. ${result.combination}: ${result.time.toFixed(2)}秒 (${modeNames[result.mode]})\n`;
+                totalTime += result.time;
+            });
+            
+            if (results.length > 0) {
+                const avgTime = (totalTime / results.length).toFixed(2);
+                text += `\n合計時間: ${totalTime.toFixed(2)}秒\n平均時間: ${avgTime}秒`;
+            }
+            
+            if (difficultCases.length > 0) {
+                text += '\n\n【苦手なケース】\n';
+                difficultCases.forEach((caseItem, index) => {
+                    text += `${index + 1}. ${caseItem.combination}\n`;
+                });
+            }
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('結果がコピーされました！');
+            }).catch(err => {
+                console.error('コピーに失敗:', err);
+            });
+        }
+    </script>
+</body>
+</html>
